@@ -21,6 +21,9 @@
             color: white;
             cursor: move;
         }
+        .animate{
+           transition: all .3s ease-in-out;
+        }
     </style>
 </head>
 
@@ -35,11 +38,21 @@
         var con = document.querySelector("#container");
         var draging = null;
         var dragoverLast = null;
+        var beforeRects = [];
+        var afterRects = [];
+        Array.from(con.children).forEach((item,index) => {
+            item.setAttribute('index',index);
+            item.addEventListener('transitionend', () => {
+                item.classList.remove('animate');
+            })
+        });
         //使用事件委托，将li的事件委托给ul
         con.ondragstart = function(event) {
             //firefox设置了setData后元素才能拖动！！！！
             event.dataTransfer.setData("te", event.target.innerText); //不能使用text，firefox会打开新tab
             draging = event.target;
+            
+            beforeRects = getItems(con).map(item => item.getBoundingClientRect());
         }
         con.ondragover = function(event) {
             event.preventDefault();
@@ -56,6 +69,23 @@
             } else {
                 target.parentNode.insertBefore(draging, target);
             }
+
+            let items = getItems(con);
+            setTimeout(() => {
+                afterRects = items.map(item => item.getBoundingClientRect())
+                items.forEach((item,i) => {
+                    let x = beforeRects[i].x - afterRects[i].x;
+                    let y = beforeRects[i].y - afterRects[i].y;
+                    item.style.transform = `translate(${x}px,${y}px)`;
+                })
+            },0);
+
+            setTimeout(() => {
+                items.forEach((item,i) => {
+                    item.classList.add('animate');
+                    item.style.transform = '';
+                })
+            },100)
         }
 
         //获取元素在父元素中的index
@@ -68,6 +98,12 @@
                 index++;
             }
             return index;
+        }
+
+        function getItems(con){
+            let items = Array.from(con.children);
+            items.sort((a,b) => a.getAttribute('index') - b.getAttribute('index'));
+            return items;
         }
     </script>
 </body>
