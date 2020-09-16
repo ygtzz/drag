@@ -51,11 +51,14 @@
         .dragitem8{
             background-color:thistle;
         }
+        .animate{
+           transition: all 1s ease-in-out;
+        }
     </style>
 </head>
 <body>
     <div class="drag-con">
-        <ul class="dragc">
+        <ul id="container" class="dragc">
             <li draggable="true" class="drag-item">
                 <div class="dragitem dragitem1"></div>
             </li>
@@ -86,7 +89,84 @@
         </ul>
     </div>
     <script>
-        
+        var con = document.querySelector("#container");
+        var draging = null;
+        var dragoverLast = null;
+        var beforeRects = [];
+        var afterRects = [];
+        Array.from(con.children).forEach((item,index) => {
+            item.setAttribute('index',index);
+            item.addEventListener('transitionend', () => {
+                item.classList.remove('animate');
+            })
+        });
+        //使用事件委托，将li的事件委托给ul
+        con.ondragstart = function(event) {
+            //firefox设置了setData后元素才能拖动！！！！
+            event.dataTransfer.setData("te", event.target.innerText); //不能使用text，firefox会打开新tab
+            draging = event.target;
+            
+            beforeRects = getItems(con).map(item => item.getBoundingClientRect());
+        }
+        con.ondragover = function(event) {
+            event.preventDefault();
+            var target = event.target;
+            //因为dragover会发生在ul上，所以要判断是不是li
+            if (target !== draging) {
+                if(target.nodeName !== 'UL'){
+                    while(target.nodeName !== "LI"){
+                        target = target.parentNode;
+                        if(target.nodeName === 'UL'){
+                            break;
+                        }
+                    }
+                }
+                dragoverLast = target;
+            }
+        }
+        con.ondragend = function(e){
+            var target = dragoverLast;
+            if (_index(draging) < _index(target)) {
+                target.parentNode.insertBefore(draging, target.nextSibling);
+            } else {
+                target.parentNode.insertBefore(draging, target);
+            }
+
+            let items = getItems(con);
+            setTimeout(() => {
+                afterRects = items.map(item => item.getBoundingClientRect())
+                items.forEach((item,i) => {
+                    let x = beforeRects[i].x - afterRects[i].x;
+                    let y = beforeRects[i].y - afterRects[i].y;
+                    item.style.transform = `translate(${x}px,${y}px)`;
+                })
+            },0);
+
+            setTimeout(() => {
+                items.forEach((item,i) => {
+                    item.classList.add('animate');
+                    item.style.transform = '';
+                })
+            },50)
+        }
+
+        //获取元素在父元素中的index
+        function _index(el) {
+            var index = 0;
+            if (!el || !el.parentNode) {
+                return -1;
+            }
+            while (el && (el = el.previousElementSibling)) {
+                index++;
+            }
+            return index;
+        }
+
+        function getItems(con){
+            let items = Array.from(con.children);
+            items.sort((a,b) => a.getAttribute('index') - b.getAttribute('index'));
+            return items;
+        }
     </script>
 </body>
 </html>
