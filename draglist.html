@@ -71,21 +71,19 @@
             }
 
             let items = getItems(con);
-            setTimeout(() => {
-                afterRects = items.map(item => item.getBoundingClientRect())
-                items.forEach((item,i) => {
-                    let x = beforeRects[i].x - afterRects[i].x;
-                    let y = beforeRects[i].y - afterRects[i].y;
-                    item.style.transform = `translate(${x}px,${y}px)`;
-                })
-            },0);
+            afterRects = items.map(item => item.getBoundingClientRect())
+            items.forEach((item,i) => {
+                let x = beforeRects[i].x - afterRects[i].x;
+                let y = beforeRects[i].y - afterRects[i].y;
+                item.style.transform = `translate(${x}px,${y}px)`;
+            })
 
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 items.forEach((item,i) => {
                     item.classList.add('animate');
                     item.style.transform = '';
                 })
-            },50)
+            })
         }
 
         //获取元素在父元素中的index

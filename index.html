@@ -104,8 +104,9 @@
         con.ondragstart = function(event) {
             //firefox设置了setData后元素才能拖动！！！！
             event.dataTransfer.setData("te", event.target.innerText); //不能使用text，firefox会打开新tab
+            event.dataTransfer.effectAllowed = 'move';
             draging = event.target;
-            
+                
             beforeRects = getItems(con).map(item => item.getBoundingClientRect());
         }
         con.ondragover = function(event) {
@@ -126,28 +127,30 @@
         }
         con.ondragend = function(e){
             var target = dragoverLast;
+
+            //last
             if (_index(draging) < _index(target)) {
                 target.parentNode.insertBefore(draging, target.nextSibling);
             } else {
                 target.parentNode.insertBefore(draging, target);
             }
-
             let items = getItems(con);
-            setTimeout(() => {
-                afterRects = items.map(item => item.getBoundingClientRect())
-                items.forEach((item,i) => {
-                    let x = beforeRects[i].x - afterRects[i].x;
-                    let y = beforeRects[i].y - afterRects[i].y;
-                    item.style.transform = `translate(${x}px,${y}px)`;
-                })
-            },0);
+            afterRects = items.map(item => item.getBoundingClientRect())
 
-            setTimeout(() => {
+            //invert
+            items.forEach((item,i) => {
+                let x = beforeRects[i].x - afterRects[i].x;
+                let y = beforeRects[i].y - afterRects[i].y;
+                item.style.transform = `translate(${x}px,${y}px)`;
+            })
+
+            //play
+            requestAnimationFrame(() => {
                 items.forEach((item,i) => {
                     item.classList.add('animate');
                     item.style.transform = '';
                 })
-            },50)
+            })
         }
 
         //获取元素在父元素中的index
