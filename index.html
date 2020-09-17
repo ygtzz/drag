@@ -54,6 +54,10 @@
         .animate{
            transition: all 1s ease-in-out;
         }
+        .draging{
+            position: relative;
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
@@ -97,7 +101,7 @@
         Array.from(con.children).forEach((item,index) => {
             item.setAttribute('index',index);
             item.addEventListener('transitionend', () => {
-                item.classList.remove('animate');
+                item.classList.remove('animate','draging');
             })
         });
         //使用事件委托，将li的事件委托给ul
@@ -106,6 +110,7 @@
             event.dataTransfer.setData("te", event.target.innerText); //不能使用text，firefox会打开新tab
             event.dataTransfer.effectAllowed = 'move';
             draging = event.target;
+            draging.classList.add('draging');
                 
             beforeRects = getItems(con).map(item => item.getBoundingClientRect());
         }
