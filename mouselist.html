@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mouse list</title>
+    <style>
+        *{margin:0;padding:0;}
+        .dragitem1{background-color: #965151;}
+        .dragitem2{background-color: #5A9653;}
+        .dragitem3{background-color: #539796;}
+        .dragitem4{background-color: #78432C;}
+        .dragitem5{background-color: #516596;}
+        .dragitem6{background-color: #2B4A78;}
+        .dragitem7{background-color: #785295;}
+        .dragitem8{background-color: #4A4A4A;}
+        .dragitem9{background-color: #865442;}
+        .con{
+            padding-top: 180px;
+        }
+        .dragc{
+            list-style: none;
+            width: 350px;
+            margin: 0 auto;
+        }
+        .drag-item{
+            float: left;
+            width: 115px;
+            height: 115px;
+        }
+        .dragitem{
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="con">
+        <ul id="dragc" class="dragc">
+            <li class="drag-item">
+                <div class="dragitem dragitem1"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem2"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem3"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem4"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem5"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem6"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem7"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem8"></div>
+            </li>
+            <li class="drag-item">
+                <div class="dragitem dragitem9"></div>
+            </li>
+        </ul>
+    </div>
+    <script>
+        let curItem = null;
+
+        init();
+
+        function init(){
+            let dragc = document.getElementById('dragc');
+            let dragitems = dragc.querySelectorAll('.dragitem');
+            //移动至容器末尾
+            dragitems.forEach(item => {
+                let offset = getOffset(item);
+                item.style.cssText = 'position:absolute;left:'+ offset.left +'px;top:'+ offset.top + 'px;';
+                item.box = item.parentNode;
+                item.offset = offset;
+                dragc.appendChild(item);
+            });
+
+            document.addEventListener('mousedown',function(e){
+                let item = e.target;
+                if(item.classList.contains('dragitem')){
+                    item.draging = true;
+                    item.clientX = e.clientX;
+                    item.clientY = e.clientY;
+                    let {left,top} = item.getBoundingClientRect();
+                    item.offsetX = item.clientX - left;
+                    item.offsetY = item.clientY - top;
+                    curItem = item;
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                }
+            })
+
+            
+        }   
+
+        function onMouseMove(e){
+            let left = e.clientX - curItem.offsetX;
+            let top = e.clientY - curItem.offsetY;
+            curItem.style.cssText = `position:absolute;left:${left}px;top:${top}px`;
+        }
+
+        function onMouseUp(e){
+            document.removeEventListener('mousemove',onMouseMove);
+            document.removeEventListener('mouseup',onMouseUp);
+        }
+
+        function getOffset(dom){
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+            let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+            let clientTop = document.documentElement.clientTop || document.body.clientTop || 0;
+            let clientLeft = document.documentElement.clientLeft || document.body.clientLeft || 0;
+            let box = dom.getBoundingClientRect();
+
+            return {
+                top: box.top + scrollTop - clientTop,
+                left: box.left + scrollLeft - clientLeft,
+                box: box
+            }
+        }
+    </script>
+</body>
+</html>
