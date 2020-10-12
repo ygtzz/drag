@@ -119,7 +119,7 @@
             let eTop = e.clientY;
             let left = e.clientX - curItem.offsetX;
             let top = e.clientY - curItem.offsetY;
-            // curItem.style.cssText = `position:absolute;left:${left}px;top:${top}px;`;
+          
             $(curItem).css({
                 left: `${left}px`,
                 top: `${top}px`
@@ -134,9 +134,7 @@
                     let temp = item.box;
                     //向上移动
                     if(boxRect.top < curItem.box.rect.top){
-                        console.log('1')
                         let start = item.box.index, end = curItem.box.index;
-                        console.log('start: ',start,'end: ',end)
                         for(let n=start;n<end;n++){
                             let nextNode = dragc.querySelector('.dragitem[index="'+(n+1)+'"]')
                             node.box = nextNode.box;
