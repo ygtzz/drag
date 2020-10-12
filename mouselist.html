@@ -66,20 +66,29 @@
             </li>
         </ul>
     </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         let curItem = null;
+        let dragc = document.getElementById('dragc');
+        let boxs = Array.from(dragc.querySelectorAll('.drag-item'));
+        boxs.forEach(item => {
+            item.rect = item.getBoundingClientRect();
+            item.offset = getOffset(item);
+        })
+        let len = boxs.length;
+        let dragitems = dragc.querySelectorAll('.dragitem');
 
         init();
 
         function init(){
-            let dragc = document.getElementById('dragc');
-            let dragitems = dragc.querySelectorAll('.dragitem');
             //移动至容器末尾
-            dragitems.forEach(item => {
+            dragitems.forEach((item,i) => {
                 let offset = getOffset(item);
                 item.style.cssText = 'position:absolute;left:'+ offset.left +'px;top:'+ offset.top + 'px;';
                 item.box = item.parentNode;
+                item.box.index = i;
                 item.offset = offset;
+                item.setAttribute('index',i);
                 dragc.appendChild(item);
             });
 
@@ -87,15 +96,18 @@
                 let item = e.target;
                 if(item.classList.contains('dragitem')){
                     item.draging = true;
-                    item.clientX = e.clientX;
-                    item.clientY = e.clientY;
                     let {left,top} = item.getBoundingClientRect();
-                    item.offsetX = item.clientX - left;
-                    item.offsetY = item.clientY - top;
+                    item.offsetX = e.clientX - left;
+                    item.offsetY = e.clientY - top;
                     curItem = item;
 
                     document.addEventListener('mousemove', onMouseMove);
                     document.addEventListener('mouseup', onMouseUp);
+
+                    $(curItem).css({
+                        opacity: .7,
+                        zIndex: 99
+                    })
                 }
             })
 
@@ -103,14 +115,70 @@
         }   
 
         function onMouseMove(e){
+            let eLeft = e.clientX;
+            let eTop = e.clientY;
             let left = e.clientX - curItem.offsetX;
             let top = e.clientY - curItem.offsetY;
-            curItem.style.cssText = `position:absolute;left:${left}px;top:${top}px`;
+            // curItem.style.cssText = `position:absolute;left:${left}px;top:${top}px;`;
+            $(curItem).css({
+                left: `${left}px`,
+                top: `${top}px`
+            })
+
+            dragitems.forEach((item,i) => {
+                if(item == curItem) return;
+                //在容器中
+                let boxRect = item.box.rect;
+                if(boxRect.left < eLeft && eLeft < boxRect.left + boxRect.width && boxRect.top < eTop && eTop < boxRect.top + boxRect.height){
+                    let node = item;
+                    let temp = item.box;
+                    //向上移动
+                    if(boxRect.top < curItem.box.rect.top){
+                        console.log('1')
+                        let start = item.box.index, end = curItem.box.index;
+                        console.log('start: ',start,'end: ',end)
+                        for(let n=start;n<end;n++){
+                            let nextNode = dragc.querySelector('.dragitem[index="'+(n+1)+'"]')
+                            node.box = nextNode.box;
+                            console.log('mov n: ', n, node);
+                            node.setAttribute('index',node.box.index);
+                            mov(node);
+                            node = nextNode;
+                        }
+                    }
+                    //向下移动
+                    else if(boxRect.top > curItem.box.rect.top){
+                        let start = curItem.box.index, end = item.box.index;
+                        for(let n=end;n>start;n--){
+                            let preNode = dragc.querySelector('.dragitem[index="'+(n-1)+'"]')
+                            node.box = preNode.box;
+                            node.setAttribute('index',node.box.index);
+                            mov(node);
+                            node = preNode;
+                        }
+                    }
+                    //平移
+                    else{
+                        item.box = curItem.box;
+                        item.setAttribute('index',item.box.index);
+                        mov(item);
+                    }
+                    curItem.box = temp;
+                    curItem.setAttribute('index',curItem.box.index);
+                }
+            })
         }
 
         function onMouseUp(e){
             document.removeEventListener('mousemove',onMouseMove);
             document.removeEventListener('mouseup',onMouseUp);
+
+            mov(curItem,function(){
+                $(curItem).css({
+                    opacity: 1,
+                    zIndex: 0
+                })
+            })
         }
 
         function getOffset(dom){
@@ -123,8 +191,16 @@
             return {
                 top: box.top + scrollTop - clientTop,
                 left: box.left + scrollLeft - clientLeft,
-                box: box
             }
+        }
+
+        function mov(el,callback){
+            $(el).stop(true).animate({
+                left: el.box.offset.left + 'px',
+                top: el.box.offset.top + 'px'
+            },500,function(){
+                callback && callback();
+            })
         }
     </script>
 </body>
